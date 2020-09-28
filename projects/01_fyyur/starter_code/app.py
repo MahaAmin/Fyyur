@@ -46,7 +46,7 @@ class Venue(db.Model):
     website_link = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean, default=False)
     #genres
-    shows = db.relationship('Show', backref='show')
+    shows = db.relationship('Show', backref='show_venue')
 
     def __repr__(self):
       return f'''<Venue {self.id},
@@ -70,7 +70,7 @@ class Artist(db.Model):
     facebook_link = db.Column(db.String(120))
     website_link = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean, default=False)
-    shows = db.relationship('Show', backref='show')
+    shows = db.relationship('Show', backref='show_artist', lazy=True)
 
     def __repr__(self):
       return f'''<Artist {self.id}, name: {self.name}, city: {self.city}, 
@@ -122,30 +122,34 @@ def index():
 
 @app.route('/venues')
 def venues():
-  # TODO: replace with real venues data.
-  #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
-    "city": "San Francisco",
-    "state": "CA",
-    "venues": [{
-      "id": 1,
-      "name": "The Musical Hop",
-      "num_upcoming_shows": 0,
-    }, {
-      "id": 3,
-      "name": "Park Square Live Music & Coffee",
-      "num_upcoming_shows": 1,
-    }]
-  }, {
-    "city": "New York",
-    "state": "NY",
-    "venues": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
-  }]
-  return render_template('pages/venues.html', areas=data);
+  # [DONE] TODO: replace with real venues data.
+  # TODO: num_shows should be aggregated based on number of upcoming shows per venue.
+
+  cities_states=Venue.query.with_entities(Venue.city,Venue.state).distinct()
+  venues=Venue.query.all()
+
+  # data=[{
+  #   "city": "San Francisco",
+  #   "state": "CA",
+  #   "venues": [{
+  #     "id": 1,
+  #     "name": "The Musical Hop",
+  #     "num_upcoming_shows": 0,
+  #   }, {
+  #     "id": 3,
+  #     "name": "Park Square Live Music & Coffee",
+  #     "num_upcoming_shows": 1,
+  #   }]
+  # }, {
+  #   "city": "New York",
+  #   "state": "NY",
+  #   "venues": [{
+  #     "id": 2,
+  #     "name": "The Dueling Pianos Bar",
+  #     "num_upcoming_shows": 0,
+  #   }]
+  # }]
+  return render_template('pages/venues.html', venues=venues, cities_states=cities_states);
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
