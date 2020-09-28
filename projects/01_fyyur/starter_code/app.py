@@ -13,6 +13,7 @@ from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
 from flask_migrate import Migrate
+from datetime import datetime
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -86,7 +87,7 @@ class Show(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   artist_id = db.Column(db.Integer, db.ForeignKey('artists.id'), nullable=False)
   venue_id = db.Column(db.Integer, db.ForeignKey('venues.id'), nullable=False)
-  #show_date_time = db.Column(db.DateTime)
+  show_date_time = db.Column(db.DateTime, default=datetime.utcnow)
 
   def __repr__(self):
     return f'''<Show {self.id}: venue_id: {self.venue_id}, artist_id: {self.artist_id}'''
