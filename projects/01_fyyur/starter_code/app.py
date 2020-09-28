@@ -45,6 +45,14 @@ class Venue(db.Model):
     website_link = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean, default=False)
     #genres
+    shows = db.relationship('Show', backref='show')
+
+    def __repr__(self):
+      return f'''<Venue {self.id},
+      name: {self.name}, city: {self.city}, state: {self.state},
+      address: {self.address}, phone: {self.phone}, image_link: {self.image_link},
+      facebook_link: {self.facebook_link}, website_link: {self.website_link}, 
+      seeking_talent: {self.seeking_talent}'''
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -61,8 +69,27 @@ class Artist(db.Model):
     facebook_link = db.Column(db.String(120))
     website_link = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean, default=False)
+    shows = db.relationship('Show', backref='show')
+
+    def __repr__(self):
+      return f'''<Artist {self.id}, name: {self.name}, city: {self.city}, 
+      state: {self.state}, phone: {self.phone}, image_link: {self.image_link}, 
+      facebook_link: {self.facebook_link}, website_link: {self.website_link}, 
+      seeking_venue: {self.seeking_venue}'''
+
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
+
+class Show(db.Model):
+  __tablename__ = "shows"
+
+  id = db.Column(db.Integer, primary_key=True)
+  artist_id = db.Column(db.Integer, db.ForeignKey('artists.id'), nullable=False)
+  venue_id = db.Column(db.Integer, db.ForeignKey('venues.id'), nullable=False)
+  #show_date_time = db.Column(db.DateTime)
+
+  def __repr__(self):
+    return f'''<Show {self.id}: venue_id: {self.venue_id}, artist_id: {self.artist_id}'''
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
