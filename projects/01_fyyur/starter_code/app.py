@@ -44,7 +44,7 @@ class Venue(db.Model):
     facebook_link = db.Column(db.String(120))
     website_link = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean, default=False)
-    genres = db.relationship('Genre_Venue', backref='genre_venue')
+    genres = db.relationship('Genre_Venue', backref='venue_genre')
     shows = db.relationship('Show', backref='show_venue')
 
     def __repr__(self):
@@ -52,7 +52,7 @@ class Venue(db.Model):
       name: {self.name}, city: {self.city}, state: {self.state},
       address: {self.address}, phone: {self.phone}, image_link: {self.image_link},
       facebook_link: {self.facebook_link}, website_link: {self.website_link}, 
-      seeking_talent: {self.seeking_talent}'''
+      seeking_talent: {self.seeking_talent}>'''
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -69,13 +69,13 @@ class Artist(db.Model):
     website_link = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean, default=False)
     shows = db.relationship('Show', backref='show_artist', lazy=True)
-    genres = db.relationship('Genre_Artist', backref='genre_artist')
+    genres = db.relationship('Genre_Artist', backref='artist_genre')
 
     def __repr__(self):
       return f'''<Artist {self.id}, name: {self.name}, city: {self.city}, 
       state: {self.state}, phone: {self.phone}, image_link: {self.image_link}, 
       facebook_link: {self.facebook_link}, website_link: {self.website_link}, 
-      seeking_venue: {self.seeking_venue}'''
+      seeking_venue: {self.seeking_venue}>'''
 
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
@@ -89,7 +89,7 @@ class Show(db.Model):
   start_time = db.Column(db.String(120))
 
   def __repr__(self):
-    return f'''<Show {self.id}: venue_id: {self.venue_id}, artist_id: {self.artist_id}'''
+    return f'''<Show {self.id}: venue_id: {self.venue_id}, artist_id: {self.artist_id}>'''
 
 
 class Genre(db.Model):
@@ -101,7 +101,7 @@ class Genre(db.Model):
 
 
   def __repr__(self):
-    return f'''<Genre {self.id}: genre_id: {self.id}, genre_name: {self.name}'''
+    return f'''<Genre {self.id}: genre_id: {self.id}, genre_name: {self.name}>'''
 
 
 class Genre_Venue(db.Model):
@@ -112,7 +112,7 @@ class Genre_Venue(db.Model):
   venue_id = db.Column(db.Integer, db.ForeignKey('venues.id'), nullable=False)
 
   def __repr__(self):
-    return f'''<Row_ID {self.id}: genre_id: {self.genre_id}, venue_id: {self.venue_id}'''
+    return f'''<Row_ID {self.id}: genre_id: {self.genre_id}, venue_id: {self.venue_id}>'''
 
 
 class Genre_Artist(db.Model):
@@ -123,7 +123,7 @@ class Genre_Artist(db.Model):
   artist_id = db.Column(db.Integer, db.ForeignKey('artists.id'), nullable=False)
 
   def __repr__(self):
-    return f'''<Row_ID {self.id}: genre_id: {self.genre_id}, artist_id: {self.venue_id}'''
+    return f'''<Row_ID {self.id}: genre_id: {self.genre_id}, artist_id: {self.venue_id}>'''
 
 
 
@@ -158,7 +158,6 @@ def index():
 @app.route('/venues')
 def venues():
   # [DONE] TODO: replace with real venues data.
-  # TODO: num_shows should be aggregated based on number of upcoming shows per venue.
 
   cities_states=Venue.query.with_entities(Venue.city,Venue.state).distinct()
   venues=Venue.query.all()
@@ -204,10 +203,16 @@ def search_venues():
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
-  # shows the venue page with the given venue_id
+  # [DONE] shows the venue page with the given venue_id
+  # TODO: num_shows should be aggregated based on number of upcoming shows per venue.
   # TODO: replace with real venue data from the venues table, using venue_id
 
   venue = Venue.query.filter_by(id=venue_id)
+  venue = venue[0]
+  venue_genres_list = Genre_Venue.query.filter_by(venue_id=1)
+  genres = []
+  for genre in venue_genres_list:
+    genres.append(Genre.query.get(genre.id).name)
 
   # data1={
   #   "id": 1,
@@ -289,7 +294,7 @@ def show_venue(venue_id):
 
   # data = list(filter(lambda d: d['id'] == venue_id, [data1, data2, data3]))[0]
 
-  return render_template('pages/show_venue.html', venue=venue[0])
+  return render_template('pages/show_venue.html', venue=venue, genres=genres)
 
 #  Create Venue
 #  ----------------------------------------------------------------
