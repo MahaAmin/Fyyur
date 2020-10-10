@@ -89,7 +89,7 @@ class Show(db.Model):
   start_time = db.Column(db.String(120))
 
   def __repr__(self):
-    return f'''<Show {self.id}: venue_id: {self.venue_id}, artist_id: {self.artist_id}>'''
+    return f'''<Show {self.id}: venue_id: {self.venue_id}, artist_id: {self.artist_id}, start_time: {self.start_time}>'''
 
 
 class Genre(db.Model):
@@ -207,13 +207,35 @@ def show_venue(venue_id):
   # TODO: num_shows should be aggregated based on number of upcoming shows per venue.
   # TODO: replace with real venue data from the venues table, using venue_id
 
-  venue = Venue.query.filter_by(id=venue_id)
-  venue = venue[0]
-  venue_genres_list = Genre_Venue.query.filter_by(venue_id=1)
+  venue = Venue.query.filter_by(id=venue_id).all()[0]
+  venue_genres_list = Genre_Venue.query.filter_by(venue_id=venue.id)
   genres = []
+
   for genre in venue_genres_list:
     genres.append(Genre.query.get(genre.id).name)
 
+  #get all shows of current venue
+  all_shows_list = Show.query.filter_by(venue_id=venue_id).all()
+
+  # format current datetime
+  now = str(datetime.now())
+  now = format_datetime(now)
+
+  upcoming_shows = []
+  upcoming_shows_count = 0
+
+  past_shows = []
+  past_shows_count = 0
+
+  for show in all_shows_list:
+    if show.start_time > now:
+      upcoming_shows.append(show)
+      upcoming_shows_count += 1
+    else:
+      past_shows.append(show)
+      past_shows_count += 1
+
+  
   # data1={
   #   "id": 1,
   #   "name": "The Musical Hop",
@@ -294,7 +316,8 @@ def show_venue(venue_id):
 
   # data = list(filter(lambda d: d['id'] == venue_id, [data1, data2, data3]))[0]
 
-  return render_template('pages/show_venue.html', venue=venue, genres=genres)
+  return render_template('pages/show_venue.html', venue=venue, genres=genres, upcoming_shows=upcoming_shows, upcoming_shows_count=upcoming_shows_count,
+  past_shows=past_shows, past_shows_count=past_shows_count)
 
 #  Create Venue
 #  ----------------------------------------------------------------
