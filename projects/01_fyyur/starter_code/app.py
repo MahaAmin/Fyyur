@@ -5,7 +5,7 @@
 import json
 import dateutil.parser
 import babel
-from flask import Flask, render_template, request, Response, flash, redirect, url_for
+from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 import logging
@@ -127,7 +127,7 @@ class Genre_Artist(db.Model):
 
 
 
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
+# [DONE] Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
 #----------------------------------------------------------------------------#
 # Filters.
@@ -342,7 +342,21 @@ def create_venue_submission():
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
   # TODO: Complete this endpoint for taking a venue_id, and using
-  # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
+  # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.  
+  try:
+    # delete venue's shows
+    Show.query.filter_by(venue_id=venue_id).delete()
+    # delete genres_venues
+    Genre_Venue.query.filter_by(venue_id=venue_id).delete()
+    # delete venues
+    Venue.query.filter_by(id=venue_id).delete()
+    db.session.commit()
+  except:
+    db.session.rollback()
+  finally:
+    db.session.close()
+  return jsonify({'success': True})
+  
 
   # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
   # clicking that button delete it from the db then redirect the user to the homepage
@@ -354,7 +368,6 @@ def delete_venue(venue_id):
 def artists():
   # [DONE]: replace with real data returned from querying the database
   artists=Artist.query.all()
-
   # data=[{
   #   "id": 4,
   #   "name": "Guns N Petals",
@@ -385,7 +398,7 @@ def search_artists():
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
   # shows the artist page with the given artist_id
-  # TODO: replace with real artist data from the artists table, using artist_id
+  # [DONE]: replace with real artist data from the artists table, using artist_id
 
   artist = Artist.query.filter_by(id=artist_id).all()[0]
   genres_artists = Genre_Artist.query.filter_by(artist_id=artist_id).all()
