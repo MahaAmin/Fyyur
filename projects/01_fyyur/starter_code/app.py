@@ -212,7 +212,7 @@ def show_venue(venue_id):
   genres = []
 
   for genre in venue_genres_list:
-    genres.append(Genre.query.get(genre.id).name)
+    genres.append(Genre.query.get(genre.genre_id).name)
 
   #get all shows of current venue
   all_shows_list = Show.query.filter_by(venue_id=venue_id).all()
@@ -412,7 +412,6 @@ def delete_venue(venue_id):
 
   # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
   # clicking that button delete it from the db then redirect the user to the homepage
-  return None
 
 #  Artists
 #  ----------------------------------------------------------------
@@ -457,7 +456,7 @@ def show_artist(artist_id):
   genres = []
 
   for genre in genres_artists:
-    genres.append(Genre.query.get(genre.id).name)
+    genres.append(Genre.query.get(genre.genre_id).name)
 
   
   #get all shows of current venue
@@ -623,9 +622,58 @@ def create_artist_submission():
   # called upon submitting the new artist listing form
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
+  new_artist = Artist()
+  new_artist.name = request.get_json()['name']
+  new_artist.state = request.get_json()['state']
+  new_artist.city = request.get_json()['city']
+  new_artist.phone = request.get_json()['phone']
+  new_artist.facebook_link = request.get_json()['facebook_link']
 
+  try:
+    db.session.add(new_artist)
+    db.session.commit()
+    print('success')
+    flash('Artist ' + new_artist.name + ' was successfully listed!')
+  except:
+    db.session.rollback()
+  finally:
+    db.session.close()
+
+
+  # insert genre
+  genre_artist = request.get_json()['genres']
+
+  available_genres = Genre.query.all()
+  new_artist = Artist.query.order_by(Artist.id.desc()).first()
+
+  genreMatch = False
+
+  for genre in available_genres:
+    if genre.name == genre_artist:
+      genreMatch = True
+      new_genre_artist = Genre_Artist(genre_id=genre.id, artist_id=new_artist.id)
+      break
+  
+  if not genreMatch:
+    new_genre = Genre(name=genre_artist)
+    db.session.add(new_genre)
+    db.session.commit()
+
+    available_genres = Genre.query.all()
+    for genre in available_genres:
+      if genre.name == genre_artist:
+        genreMatch = True
+        new_genre_artist = Genre_Artist(genre_id=genre.id, artist_id=new_artist.id)
+        break
+
+  try:
+    db.session.add(new_genre_artist)
+    db.session.commit()
+  except:
+    db.session.rollback()
+  finally:
+    db.session.close()
   # on successful db insert, flash success
-  flash('Artist ' + request.form['name'] + ' was successfully listed!')
   # TODO: on unsuccessful db insert, flash an error instead.
   # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
   return render_template('pages/home.html')
