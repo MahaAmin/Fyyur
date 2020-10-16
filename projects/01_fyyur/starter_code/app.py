@@ -331,9 +331,61 @@ def create_venue_form():
 def create_venue_submission():
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
+  new_venue = Venue()
+  new_venue.name = request.get_json()['name']
+  new_venue.state = request.get_json()['state']
+  new_venue.city = request.get_json()['city']
+  new_venue.address = request.get_json()['address']
+  new_venue.phone = request.get_json()['phone']
+  new_venue.facebook_link = request.get_json()['facebook_link']
+
+  # insert venue except genre
+  try:
+    db.session.add(new_venue)
+    db.session.commit()
+    flash('Venue ' + new_venue.name + ' was successfully listed!')
+  except:
+    db.session.rollback()
+    flash('An error occurred. Venue ' + new_venue.name + ' could not be listed.')
+  finally:
+    db.session.close()
+
+  # insert genre
+  genre_venue = request.get_json()['genres']
+
+  available_genres = Genre.query.all()
+  new_venue = Venue.query.order_by(Venue.id.desc()).first()
+
+  genreMatch = False
+
+  for genre in available_genres:
+    if genre.name == genre_venue:
+      genreMatch = True
+      new_genre_venue = Genre_Venue(genre_id=genre.id, venue_id=new_venue.id)
+      break
+  
+  if not genreMatch:
+    new_genre = Genre(name=genre_venue)
+    db.session.add(new_genre)
+    db.session.commit()
+
+    available_genres = Genre.query.all()
+    for genre in available_genres:
+      if genre.name == genre_venue:
+        genreMatch = True
+        new_genre_venue = Genre_Venue(genre_id=genre.id, venue_id=new_venue.id)
+        break
+
+  try:
+    db.session.add(new_genre_venue)
+    db.session.commit()
+  except:
+    db.session.rollback()
+  finally:
+    db.session.close()
 
   # on successful db insert, flash success
-  flash('Venue ' + request.form['name'] + ' was successfully listed!')
+  #flash('Venue ' + request.form['name'] + ' was successfully listed!')
   # TODO: on unsuccessful db insert, flash an error instead.
   # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
   # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
