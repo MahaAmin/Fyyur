@@ -303,7 +303,17 @@ def search_artists():
       "num_upcoming_shows": 0,
     }]
   }
-  return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
+
+  search_term = request.form.get('search_term')
+  artists = Artist.query.all()
+
+  response_data = []
+  for artist in artists:
+    if search_term.lower() in artist.name.lower():
+      response_data.append(artist)
+
+  results_count = len(response_data)
+  return render_template('pages/search_artists.html', results=response_data, search_term=search_term, results_count=results_count)
 
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
