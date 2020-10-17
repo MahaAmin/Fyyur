@@ -2,7 +2,7 @@
 {% block title %}Edit Artist{% endblock %}
 {% block content %}
   <div class="form-wrapper">
-    <form class="form" method="post" action="/artists/{{artist.id}}/edit">
+    <form id="edit-artist-form" data-id={{ artist.id }} class="form" method="post" action="/artists/{{artist.id}}/edit">
       <h3 class="form-heading">Edit artist <em>{{ artist.name }}</em></h3>
       <div class="form-group">
         <label for="name">Name</label>
@@ -26,13 +26,35 @@
       <div class="form-group">
         <label for="genres">Genres</label>
         <small>Ctrl+Click to select multiple</small>
-        {{ form.genres(class_ = 'form-control', placeholder='Genres, separated by commas', id=form.state, autofocus = true) }}
+        {{ form.genres(class_ = 'form-control', placeholder='Genres, separated by commas', autofocus = true) }}
       </div>
       <div class="form-group">
           <label for="genres">Facebook Link</label>
-          {{ form.facebook_link(class_ = 'form-control', placeholder='http://', id=form.state, autofocus = true) }}
+          {{ form.facebook_link(class_ = 'form-control', placeholder='http://', autofocus = true) }}
         </div>
       <input type="submit" value="Edit Artist" class="btn btn-primary btn-lg btn-block">
     </form>
   </div>
+  <script>
+    const editArtistForm = document.getElementById('edit-artist-form');
+    editArtistForm.onsubmit = function(e){
+      e.preventDefault()
+      artist_id = e.target.dataset['id'];
+      console.log(artist_id);
+      fetch(`/artists/${artist_id}/edit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          'name': document.getElementById('name').value,
+          'state': document.getElementById('state').value,
+          'city': document.getElementById('city').value,
+          'phone': document.getElementById('phone').value,
+          'genres': document.getElementById('genres').value,
+          'facebook_link': document.getElementById('facebook_link').value,
+        })
+      })
+    }
+  </script>
 {% endblock %}

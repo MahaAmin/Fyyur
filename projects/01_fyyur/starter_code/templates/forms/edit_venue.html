@@ -46,8 +46,6 @@
   editVenueForm.onsubmit = function (e) {
     e.preventDefault();
     venue_id = e.target.dataset['id'];
-    console.log(e);
-    console.log(venue_id);
     fetch(`/venues/${venue_id}/edit`, {
       method: 'POST',
       headers: {
